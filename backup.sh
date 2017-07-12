@@ -45,7 +45,7 @@ SCP_ENABLE="no"
 SCP_HOST=""
 SCP_PORT="22"
 SCP_USERNAME=""
-SCP_PATH=""
+SCP_DIRECTORIES="/etc /var/log"
 SCP_PASSWORD=""
 
 # Something like : Tell me on telegram
@@ -83,14 +83,17 @@ fi
 if [ $SCP_ENABLE = "yes" ]
 then	
     echo "~ scp: starting"
-	echo "$(date_now) SCP backup archive from $SCP_HOST to localhost" >> $LOG_FILE
-    mkdir -p $backup_path/scp/
-    sshpass -p $SCP_PASSWORD scp -P $SCP_PORT -r $SCP_USERNAME@$SCP_HOST:$SCP_PATH $backup_path/scp/
-    if [ $? -eq 0 ];then
-        echo "$(date_now) SCP OK" >> $LOG_FILE
-    else
-        echo "$(date_now) SCP , an error occurred" >> $LOG_FILE
-    fi
+	echo "$(date_now) SCP backup archive from $SCP_HOST to localhost" >> $LOG_FILE    
+    for scp_dir in $SCP_DIRECTORIES
+	do
+        mkdir -p $backup_path/scp/$scp_dir
+		sshpass -p $SCP_PASSWORD scp -P $SCP_PORT -r $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path/scp/$scp_dir
+        if [ $? -eq 0 ];then
+            echo "$(date_now) SCP for $scp_dir has been finished" >> $LOG_FILE
+        else
+            echo "$(date_now) SCP , an error occurred ($scp_dir)" >> $LOG_FILE
+        fi
+	done
     echo "~ scp: end"
 fi
 
