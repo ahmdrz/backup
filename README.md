@@ -12,3 +12,10 @@ My personal backup script
 2. zip
 3. curl
 4. pg_dump
+
+## How to use ?
+
+0. git clone `https://github.com/ahmdrz/backup`.
+1. run `sh mkbackup.sh <projectname>` in your terminal.
+2. modify `<projectname>/<projectname>.sh` file and replace your configurations.
+3. (optional) configure a `cronjob` for this backup script.

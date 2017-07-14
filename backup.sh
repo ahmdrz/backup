@@ -1,4 +1,6 @@
-#!/bin/bash
+## THIS IS A TEMPLATE FOR mkbackup.sh
+## FIRST OF ALL , PLEASE USE mkbackup.sh TO 
+## GENERATE backup.sh FOR EACH PROJECTS
 
 if ! [ -x "$(command -v sshpass)" ]; then
   echo 'Error: sshpass not found. Let me install it...' >&2
@@ -17,8 +19,6 @@ fi
 
 alias date_now='date +"[%Y-%m-%d %H:%M:%S]"'
 alias unix_time='date +%s%3N'
-
-backup_path="backup_$(unix_time)"
 
 LOG_FILE="$backup_path/backup.log"
 mkdir $backup_path
