@@ -20,3 +20,8 @@ My personal backup script
 1. modify `config.json` file.
 2. run `sh backup.sh`.
 3. (optional) configure a `cronjob` for this backup script.
+
+**NOTE**
+
+You can use `sh backup.sh <config_file>` for change configuration file name.
+Default is `config.json`

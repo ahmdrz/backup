@@ -1,5 +1,11 @@
 #!/bin/bash
 
+config_file="config.json"
+
+if [ $# -gt 0 ]; then
+    config_file=$1
+fi
+
 command=""
 
 if ! [ -x "$(command -v pg_dump)" ]; then
@@ -28,27 +34,25 @@ if ! [ -z "$command" ]; then
     sudo apt install $command
 fi
 
-if ! [ -f "config.json" ]; then
+if ! [ -f "$config_file" ]; then
     echo 'Error: There is no config file'
     exit 1
 fi
 
 get_config() {
-    cat config.json | jq -r $1
+    cat $config_file | jq -r $1
 }
 
 PROJECT_NAME=$(get_config '.project_name')
+echo $PROJECT_NAME
 mkdir -p $PROJECT_NAME
 backup_path="$PROJECT_NAME/backup_$(date +%s%3N)"
-
+LOG_FILE="$backup_path/backup.log"
+mkdir $backup_path
 alias date_now='date +"[%Y-%m-%d %H:%M:%S]"'
 alias unix_time='date +%s%3N'
 
-LOG_FILE="$backup_path/backup.log"
-mkdir $backup_path
-
 echo "$(date_now) backup initilized by $(whoami)" > $LOG_FILE
-
 
 # Configurations
 PG_ENABLE=$(get_config '.postgres.enable')
@@ -90,7 +94,7 @@ FINISHER_CMD="echo bye $(whoami)"
 
 echo "$(date_now) backup script started" >> $LOG_FILE
 
-if [ $PG_ENABLE = "yes" ]
+if [ $PG_ENABLE = "true" ]
 then
     echo "~ postgres: starting"
     if [ $(whoami) = "root" ]
@@ -115,14 +119,13 @@ then
     echo "~ postgres: end"
 fi
 
-if [ $SCP_ENABLE = "yes" ]
+if [ $SCP_ENABLE = "true" ]
 then	
     echo "~ scp: starting"
 	echo "$(date_now) SCP backup archive from $SCP_HOST to localhost" >> $LOG_FILE    
     for scp_dir in $SCP_DIRECTORIES
-	do
-        mkdir -p $backup_path/scp/$scp_dir
-		sshpass -p $SCP_PASSWORD scp -P $SCP_PORT -r $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path/scp/$scp_dir
+	do        
+		sshpass -p $SCP_PASSWORD scp -P $SCP_PORT -R $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path
         if [ $? -eq 0 ];then
             echo "$(date_now) SCP for $scp_dir has been finished" >> $LOG_FILE
         else
@@ -132,7 +135,7 @@ then
     echo "~ scp: end"
 fi
 
-if [ $SMTP_MAIL_ENABLE = "yes" ]
+if [ $SMTP_MAIL_ENABLE = "true" ]
 then
     echo "~ email: starting"
     echo "$(date_now) email sender started" >> $LOG_FILE
@@ -145,7 +148,7 @@ then
     echo "~ email: finished"
 fi
 
-if [ $FINISHER_ENABLE = "yes" ]
+if [ $FINISHER_ENABLE = "true" ]
 then
     echo "~ finisher: starting"
     echo "$(date_now) running finisher command" >> $LOG_FILE 
