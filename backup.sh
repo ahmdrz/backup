@@ -44,7 +44,7 @@ get_config() {
 }
 
 PROJECT_NAME=$(get_config '.project_name')
-echo $PROJECT_NAME
+echo "~ creating $PROJECT_NAME"
 mkdir -p $PROJECT_NAME
 backup_path="$PROJECT_NAME/backup_$(date +%s%3N)"
 LOG_FILE="$backup_path/backup.log"
@@ -89,8 +89,7 @@ done
 
 # Something like : Tell me on telegram
 FINISHER_ENABLE=$(get_config '.finisher.enable')
-FINISHER_CMD="echo bye $(whoami)"
-
+FINISHER_CMD=$(get_config '.finisher.command')
 
 echo "$(date_now) backup script started" >> $LOG_FILE
 
@@ -124,8 +123,8 @@ then
     echo "~ scp: starting"
 	echo "$(date_now) SCP backup archive from $SCP_HOST to localhost" >> $LOG_FILE    
     for scp_dir in $SCP_DIRECTORIES
-	do        
-		sshpass -p $SCP_PASSWORD scp -P $SCP_PORT -R $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path
+	do
+		sshpass -p $SCP_PASSWORD scp -q -P $SCP_PORT -rp $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path
         if [ $? -eq 0 ];then
             echo "$(date_now) SCP for $scp_dir has been finished" >> $LOG_FILE
         else
@@ -139,7 +138,7 @@ if [ $SMTP_MAIL_ENABLE = "true" ]
 then
     echo "~ email: starting"
     echo "$(date_now) email sender started" >> $LOG_FILE
-	status=$(curl -s -w %{http_code} --output /dev/null --url 'smtps://'$SMTP_MAIL_HOST':'$SMTP_MAIL_PORT --ssl-reqd --mail-from $SMTP_MAIL_FROM --mail-rcpt $SMTP_MAIL_TARGET --upload-file $LOG_FILE --user $SMTP_MAIL_FROM':'$SMTP_MAIL_PASSWORD --insecure --fail)
+	# status=$(curl -s -w %{http_code} --output /dev/null --url 'smtps://'$SMTP_MAIL_HOST':'$SMTP_MAIL_PORT' --ssl-reqd --mail-from $SMTP_MAIL_FROM --mail-rcpt $SMTP_MAIL_TARGET --upload-file $LOG_FILE --user $SMTP_MAIL_FROM':'$SMTP_MAIL_PASSWORD --insecure --fail)
     if [ $? -eq 0 ];then
         echo "$(date_now) email has been sent to $SMTP_MAIL_TARGET" >> $LOG_FILE
     else
