@@ -1,21 +1,45 @@
-## THIS IS A TEMPLATE FOR mkbackup.sh
-## FIRST OF ALL , PLEASE USE mkbackup.sh TO 
-## GENERATE backup.sh FOR EACH PROJECTS
+#!/bin/bash
+
+command=""
+
+if ! [ -x "$(command -v pg_dump)" ]; then
+  command="$command postgresql postgresql-contrib"
+fi
 
 if ! [ -x "$(command -v sshpass)" ]; then
-  echo 'Error: sshpass not found. Let me install it...' >&2
-  sudo apt install sshpass  
+  command="$command sshpass"
 fi
 
 if ! [ -x "$(command -v curl)" ]; then
-  echo 'Error: curl not found. Let me install it...' >&2
-  sudo apt install curl  
+  command="$command curl"
 fi
 
 if ! [ -x "$(command -v zip)" ]; then
-  echo 'Error: zip not found. Let me install it...' >&2
-  sudo apt install zip  
+  command="$command zip"
 fi
+
+if ! [ -x "$(command -v jq)" ]; then
+  command="$command jq"
+fi
+
+if ! [ -z "$command" ]; then
+    # only for debian base linux distributions.
+    echo "~ installing $command"
+    sudo apt install $command
+fi
+
+if ! [ -f "config.json" ]; then
+    echo 'Error: There is no config file'
+    exit 1
+fi
+
+get_config() {
+    cat config.json | jq -r $1
+}
+
+PROJECT_NAME=$(get_config '.project_name')
+mkdir -p $PROJECT_NAME
+backup_path="$PROJECT_NAME/backup_$(date +%s%3N)"
 
 alias date_now='date +"[%Y-%m-%d %H:%M:%S]"'
 alias unix_time='date +%s%3N'
@@ -27,29 +51,40 @@ echo "$(date_now) backup initilized by $(whoami)" > $LOG_FILE
 
 
 # Configurations
-PG_ENABLE="no"
-PG_DBNAME=""
-PG_USERNAME=""
-PG_PASSWORD=""
-PG_PORT="5432"
-PG_HOST=""
+PG_ENABLE=$(get_config '.postgres.enable')
+PG_DBNAME=$(get_config '.postgres.name')
+PG_USERNAME=$(get_config '.postgres.username')
+PG_PASSWORD=$(get_config '.postgres.password')
+PG_PORT=$(get_config '.postgres.port')
+PG_HOST=$(get_config '.postgres.host')
 
-SMTP_MAIL_ENABLE="no"
-SMTP_MAIL_TARGET=""
-SMTP_MAIL_FROM=""
-SMTP_MAIL_PASSWORD=""
-SMTP_MAIL_HOST="smtp.gmail.com"
-SMTP_MAIL_PORT="465"
+SMTP_MAIL_ENABLE=$(get_config '.smtp.enable')
+SMTP_MAIL_TARGET=$(get_config '.smtp.target')
+SMTP_MAIL_FROM=$(get_config '.smtp.from')
+SMTP_MAIL_PASSWORD=$(get_config '.smtp.password')
+SMTP_MAIL_HOST=$(get_config '.smtp.host')
+SMTP_MAIL_PORT=$(get_config '.smtp.port')
 
-SCP_ENABLE="no"
-SCP_HOST=""
-SCP_PORT="22"
-SCP_USERNAME=""
-SCP_DIRECTORIES="/etc /var/log"
-SCP_PASSWORD=""
+SCP_ENABLE=$(get_config '.scp.enable')
+SCP_HOST=$(get_config '.scp.host')
+SCP_PORT=$(get_config '.scp.port')
+SCP_USERNAME=$(get_config '.scp.username')
+SCP_TEMP=$(get_config '.scp.directories')
+SCP_DIRECTORIES=""
+SCP_PASSWORD=$(get_config '.scp.password')
+
+index=0
+while true; do
+    temp_input=$(get_config ".scp.directories[$index]")    
+    if [ $temp_input = null ]; then
+        break
+    fi
+    SCP_DIRECTORIES="$SCP_DIRECTORIES $temp_input"
+    index=$((index+=1))
+done
 
 # Something like : Tell me on telegram
-FINISHER_ENABLE="yes"
+FINISHER_ENABLE=$(get_config '.finisher.enable')
 FINISHER_CMD="echo bye $(whoami)"
 
 
