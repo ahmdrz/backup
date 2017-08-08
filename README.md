@@ -25,3 +25,5 @@ My personal backup script
 
 You can use `sh backup.sh <config_file>` for change configuration file name.
 Default is `config.json`
+
+This project is forked from [narbehaj/backup](https://gitlab.com/narbehaj/backup)
