@@ -78,7 +78,7 @@ SCP_DIRECTORIES=""
 SCP_PASSWORD=$(get_config '.scp.password')
 
 index=0
-while true; do
+while true; do    
     temp_input=$(get_config ".scp.directories[$index]")    
     if [ $temp_input = null ]; then
         break
@@ -87,9 +87,9 @@ while true; do
     index=$((index+=1))
 done
 
-# Something like : Tell me on telegram
 FINISHER_ENABLE=$(get_config '.finisher.enable')
 FINISHER_CMD=$(get_config '.finisher.command')
+FINISHER_ZIP=$(get_config '.finisher.zip')
 
 echo "$(date_now) backup script started" >> $LOG_FILE
 
@@ -134,19 +134,6 @@ then
     echo "~ scp: end"
 fi
 
-if [ $SMTP_MAIL_ENABLE = "true" ]
-then
-    echo "~ email: starting"
-    echo "$(date_now) email sender started" >> $LOG_FILE
-	# status=$(curl -s -w %{http_code} --output /dev/null --url 'smtps://'$SMTP_MAIL_HOST':'$SMTP_MAIL_PORT' --ssl-reqd --mail-from $SMTP_MAIL_FROM --mail-rcpt $SMTP_MAIL_TARGET --upload-file $LOG_FILE --user $SMTP_MAIL_FROM':'$SMTP_MAIL_PASSWORD --insecure --fail)
-    if [ $? -eq 0 ];then
-        echo "$(date_now) email has been sent to $SMTP_MAIL_TARGET" >> $LOG_FILE
-    else
-        echo "$(date_now) email not sent to $SMTP_MAIL_TARGET , an error occurred , status code : $status" >> $LOG_FILE
-    fi
-    echo "~ email: finished"
-fi
-
 if [ $FINISHER_ENABLE = "true" ]
 then
     echo "~ finisher: starting"
@@ -155,12 +142,15 @@ then
     echo "~ finisher: end"
 fi
 
-echo "~ zipping..."
 echo "$(date_now) backup finished" >> $LOG_FILE
-zip -r "$backup_path.zip" $backup_path -q
-if [ $? -eq 0 ]
-then    
-    rm -rf $backup_path
-else
-    echo "~ Cannot create zip file from $backup_path"
+if [ $FINISHER_ZIP = "true" ]
+then
+    echo "~ zipping..."
+    zip -r "$backup_path.zip" $backup_path -q
+    if [ $? -eq 0 ]
+    then    
+        rm -rf $backup_path
+    else
+        echo "~ Cannot create zip file from $backup_path"
+    fi
 fi

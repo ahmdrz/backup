@@ -1,33 +1,26 @@
 {
-	"project_name": "my_backup",
+	"project_name": "",
 	"postgres": {
-		"enable": false,
-		"host": "hostname",
+		"enable": true,
+		"host": "",
 		"port": 5432,
-		"name": "db_name",
-		"username": "username",
-		"password": "password"
-	},
-	"smtp": {
-		"enable": false,
-		"target": "target_email_address",
-		"from": "owner_email_address",
-		"host": "smtp.gmail.com",
-		"port": 465
+		"name": "",
+		"username": "",
+		"password": ""
 	},
 	"scp": {
 		"enable": false,
-		"host": "server.host.com",
+		"host": "",
 		"port": 22,
-		"username": "username",
-		"password": "password",
+		"username": "",
+		"password": "",
 		"directories": [
-			"/var/log",
-			"test"
+			"/home/aiden"
 		]
 	},
 	"finisher": {
 		"enable": true,
-		"command": "echo bye"
+		"command": "echo bye",
+		"zip": false
 	}
 }
