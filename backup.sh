@@ -124,7 +124,7 @@ then
 	echo "$(date_now) SCP backup archive from $SCP_HOST to localhost" >> $LOG_FILE    
     for scp_dir in $SCP_DIRECTORIES
 	do
-		sshpass -p $SCP_PASSWORD scp -q -P $SCP_PORT -rp $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path
+		sshpass -p "$SCP_PASSWORD" scp -q -P $SCP_PORT -rp $SCP_USERNAME@$SCP_HOST:$scp_dir $backup_path
         if [ $? -eq 0 ];then
             echo "$(date_now) SCP for $scp_dir has been finished" >> $LOG_FILE
         else
